@@ -6,30 +6,32 @@ import AddressContainer from "./components/addressContainer";
 function App() {
   const [account, setAccount] = useState("");
   const [chainId, setChainId] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const checkMetaMask = () => {
+    if (!window.ethereum) {
+      alert("Please install MetaMask browser extension to continue");
+
+      return false;
+    }
+
+    return true;
+  };
 
   const getChainId = async () => {
-    try {
-      if (!window.ethereum) {
-        alert("Please install MetaMask browser extension to continue");
-      }
+    const { ethereum } = window;
+    const chainId = await ethereum.request({ method: "eth_chainId" });
 
-      const { ethereum } = window;
-      const chainId = await ethereum.request({ method: "eth_chainId" });
-
-      setChainId(chainId);
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong. Please try again later.");
-    }
+    setChainId(chainId);
   };
 
   const connectWallet = async () => {
     try {
-      if (!window.ethereum) {
-        alert("Please install MetaMask browser extension to continue");
-      }
+      if (!checkMetaMask()) return;
 
       const { ethereum } = window;
+
+      setLoading(true);
 
       const [account] = await ethereum.request({
         method: "eth_requestAccounts",
@@ -41,17 +43,23 @@ function App() {
     } catch (error) {
       console.error(error);
       alert("Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleChainChanged = () => {
+    window.location.reload();
   };
 
   useEffect(() => {
     const checkConnectedWallet = async () => {
       try {
-        if (!window.ethereum) {
-          alert("Please install MetaMask browser extension to continue");
-        }
+        if (!checkMetaMask()) return;
 
         const { ethereum } = window;
+
+        setLoading(true);
 
         const [account] = await ethereum.request({
           method: "eth_accounts",
@@ -63,13 +71,29 @@ function App() {
       } catch (error) {
         console.error(error);
         alert("Something went wrong. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
 
     checkConnectedWallet();
   }, []);
 
+  useEffect(() => {
+    if (!checkMetaMask()) return;
+
+    const { ethereum } = window;
+
+    ethereum.on("chainChanged", handleChainChanged);
+
+    return () => ethereum.removeListener("chainChanged", handleChainChanged);
+  }, []);
+
   const renderContent = () => {
+    if (loading) {
+      return <p className="header gradient-text">Loading...</p>;
+    }
+
     if (account) {
       return (
         <div>
