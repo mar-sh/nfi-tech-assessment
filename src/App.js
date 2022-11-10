@@ -1,6 +1,8 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
 
+import AddressContainer from "./components/addressContainer";
+
 function App() {
   const [account, setAccount] = useState("");
 
