@@ -42,7 +42,11 @@ function App() {
       setAccount(account);
     } catch (error) {
       console.error(error);
-      alert("Something went wrong. Please try again later.");
+
+      if (error.code === 4001) {
+        // EIP-1193 userRejectedRequest error
+        alert("Please connect to MetaMask");
+      } else alert("Something went wrong. Please try again later.");
     } finally {
       setLoading(false);
     }
